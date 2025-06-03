@@ -5,7 +5,7 @@ import axios from 'axios';
 // Import all components
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-import  Dashboard from './components/dashboard/Dashboard';
+import Dashboard from './components/dashboard/Dashboard';
 import AnnouncementForm from './components/announcements/AnnouncementForm';
 import AnnouncementDetails from './components/announcements/AnnouncementDetails';
 import JournalistBrowse from './components/journalist/JournalistBrowse';
@@ -98,86 +98,98 @@ const Home = () => {
   );
 };
 
-function App() {
+function AppRoutes() {
+  const { user } = useAuth();
+
   return (
-    <AuthProvider>
-      <Router>
-        <div className="app">
-          <Navbar />
-          <div className="container">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Protected Routes */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Company Routes */}
-              <Route 
-                path="/announcements/new" 
-                element={
-                  <ProtectedRoute allowedRoles={['company']}>
-                    <AnnouncementForm />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Journalist Routes */}
-              <Route 
-                path="/journalist/browse" 
-                element={
-                  <ProtectedRoute allowedRoles={['journalist']}>
-                    <JournalistBrowse />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Shared Protected Routes */}
-              <Route 
-                path="/announcements/:id" 
-                element={
-                  <ProtectedRoute>
-                    <AnnouncementDetails />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/announcements/:id/chat" 
-                element={
-                  <ProtectedRoute>
-                    <ChatInterface />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile/journalist/:id" 
-                element={
-                  <ProtectedRoute>
-                    <JournalistProfile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
+    <Router>
+      <div className="app">
+        <Navbar />
+        <div className="container">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* Protected Routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Company Routes */}
+            <Route 
+              path="/announcements/new" 
+              element={
+                <ProtectedRoute allowedRoles={['company']}>
+                  <AnnouncementForm />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Journalist Routes */}
+            <Route 
+              path="/journalist/browse" 
+              element={
+                <ProtectedRoute allowedRoles={['journalist']}>
+                  <JournalistBrowse />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Shared Protected Routes */}
+            <Route 
+              path="/announcements/:id" 
+              element={
+                <ProtectedRoute>
+                  <AnnouncementDetails />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/announcements/:id/chat" 
+              element={
+                <ProtectedRoute>
+                  <ChatInterface />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/journalist/:id" 
+              element={
+                <ProtectedRoute>
+                  <JournalistProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
                 path="/profile/edit" 
                 element={
                   <ProtectedRoute>
-                    <Navigate to={`/profile/${user.role}/${user.id}`} />
+                    {user ? (
+                      <Navigate to={`/profile/${user.role}/${user.id}`} />
+                    ) : (
+                      <div>Loading...</div> // or redirect to login or dashboard
+                    )}
                   </ProtectedRoute>
                 } 
-              />
-            </Routes>
-          </div>
+            />
+          </Routes>
         </div>
-      </Router>
+      </div>
+    </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
     </AuthProvider>
   );
 }
