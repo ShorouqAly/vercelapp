@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import './Announcements.css';
+import PRGenerator from '../pr-generator/PRGenerator';
 
 const AnnouncementForm = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const AnnouncementForm = () => {
     needsWritingSupport: false,
     writingSupportType: 'none'
   });
+  const [showPRGenerator, setShowPRGenerator] = useState(false);
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -94,109 +96,157 @@ const AnnouncementForm = () => {
   
   const renderStep = () => {
     switch (step) {
-      case 1:
-        return (
-          <>
-            <h2>Create New Announcement</h2>
-            <p>Step 1: Enter your announcement details</p>
-            
-            <div className="form-group">
-              <label htmlFor="title">Announcement Title *</label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-                placeholder="e.g. 'Company X Raises $10M Series A'"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="summary">Summary (50-100 words) *</label>
-              <textarea
-                id="summary"
-                name="summary"
-                value={formData.summary}
-                onChange={handleChange}
-                required
-                rows="3"
-                placeholder="Brief summary of your announcement that journalists will see first"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="fullContent">Full Press Release *</label>
-              <textarea
-                id="fullContent"
-                name="fullContent"
-                value={formData.fullContent}
-                onChange={handleChange}
-                required
-                rows="10"
-                placeholder="Your complete press release content"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label>
-                <input
-                  type="checkbox"
-                  name="needsWritingSupport"
-                  checked={formData.needsWritingSupport}
-                  onChange={handleChange}
-                />
-                I need help writing/editing this announcement
-              </label>
-            </div>
-            
-            {formData.needsWritingSupport && (
-              <div className="form-group">
-                <label>Choose writing support level:</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      name="writingSupportType"
-                      value="ai_generated"
-                      checked={formData.writingSupportType === 'ai_generated'}
-                      onChange={handleChange}
-                    />
-                    AI-Generated Draft (+$49)
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="writingSupportType"
-                      value="human_assisted"
-                      checked={formData.writingSupportType === 'human_assisted'}
-                      onChange={handleChange}
-                    />
-                    Human-Assisted Editing (+$99)
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="writingSupportType"
-                      value="full_service"
-                      checked={formData.writingSupportType === 'full_service'}
-                      onChange={handleChange}
-                    />
-                    Full-Service Writing (+$199)
-                  </label>
+    case 1:
+      return (
+        <>
+          <h2>Create New Announcement</h2>
+          <p>Step 1: Enter your announcement details or use our PR generator</p>
+          
+          {!showPRGenerator ? (
+            <div className="content-options">
+              <div className="content-option-cards">
+                <div className="content-option-card">
+                  <h3>🤖 Use PR Generator</h3>
+                  <p>Answer a few questions and we'll create a professional press release for you</p>
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={() => setShowPRGenerator(true)}
+                  >
+                    Generate Press Release
+                  </button>
+                </div>
+                
+                <div className="content-option-card">
+                  <h3>✍️ Write Manually</h3>
+                  <p>Create your announcement content from scratch</p>
+                  <button 
+                    type="button" 
+                    className="btn btn-outline"
+                    onClick={() => setShowPRGenerator(false)}
+                  >
+                    Continue Manually
+                  </button>
                 </div>
               </div>
-            )}
-            
-            <div className="form-buttons">
-              <button type="button" className="btn btn-primary" onClick={nextStep}>
-                Next: Add Tags & Embargo
-              </button>
             </div>
-          </>
-        );
-      
+          ) : (
+            <PRGenerator 
+              onComplete={(generatedContent) => {
+                setFormData(prev => ({
+                  ...prev,
+                  title: generatedContent.title,
+                  summary: generatedContent.summary,
+                  fullContent: generatedContent.fullContent,
+                  industryTags: generatedContent.industryTags,
+                  journalistBeatTags: generatedContent.journalistBeatTags
+                }));
+                setShowPRGenerator(false);
+                setStep(2); // Skip to step 2 after generation
+              }}
+            />
+          )}
+          
+          {!showPRGenerator && (
+            <>
+              <div className="form-group">
+                <label htmlFor="title">Announcement Title *</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. 'Company X Raises $10M Series A'"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="summary">Summary (50-100 words) *</label>
+                <textarea
+                  id="summary"
+                  name="summary"
+                  value={formData.summary}
+                  onChange={handleChange}
+                  required
+                  rows="3"
+                  placeholder="Brief summary of your announcement that journalists will see first"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="fullContent">Full Press Release *</label>
+                <textarea
+                  id="fullContent"
+                  name="fullContent"
+                  value={formData.fullContent}
+                  onChange={handleChange}
+                  required
+                  rows="10"
+                  placeholder="Your complete press release content"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="needsWritingSupport"
+                    checked={formData.needsWritingSupport}
+                    onChange={handleChange}
+                  />
+                  I need help writing/editing this announcement
+                </label>
+              </div>
+              
+              {formData.needsWritingSupport && (
+                <div className="form-group">
+                  <label>Choose writing support level:</label>
+                  <div className="radio-group">
+                    <label>
+                      <input
+                        type="radio"
+                        name="writingSupportType"
+                        value="ai_generated"
+                        checked={formData.writingSupportType === 'ai_generated'}
+                        onChange={handleChange}
+                      />
+                      AI-Generated Draft (+$49)
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="writingSupportType"
+                        value="human_assisted"
+                        checked={formData.writingSupportType === 'human_assisted'}
+                        onChange={handleChange}
+                      />
+                      Human-Assisted Editing (+$99)
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="writingSupportType"
+                        value="full_service"
+                        checked={formData.writingSupportType === 'full_service'}
+                        onChange={handleChange}
+                      />
+                      Full-Service Writing (+$199)
+                    </label>
+                  </div>
+                </div>
+              )}
+              
+              <div className="form-buttons">
+                <button type="button" className="btn btn-primary" onClick={nextStep}>
+                  Next: Add Tags & Embargo
+                </button>
+              </div>
+            </>
+          )}
+        </>
+      );
       case 2:
         return (
           <>

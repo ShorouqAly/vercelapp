@@ -400,8 +400,46 @@
   font-size: 0.875rem;
   color: #64748b;
 }
+.content-options {
+  margin: 2rem 0;
+}
 
+.content-option-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.content-option-card {
+  padding: 2rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.content-option-card:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.content-option-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.content-option-card p {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
 @media (max-width: 768px) {
+  .content-option-cards {
+    grid-template-columns: 1fr;
+  }
   .plan-selector {
     grid-template-columns: 1fr;
   }
