@@ -10,6 +10,7 @@ import AnnouncementForm from './components/announcements/AnnouncementForm';
 import AnnouncementDetails from './components/announcements/AnnouncementDetails';
 import JournalistBrowse from './components/journalist/JournalistBrowse';
 import ChatInterface from './components/chat/ChatInterface';
+import JournalistProfile from './components/profiles/JournalistProfile';
 import { Navbar } from './components/layout/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
@@ -154,6 +155,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ChatInterface />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile/journalist/:id" 
+                element={
+                  <ProtectedRoute>
+                    <JournalistProfile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile/edit" 
+                element={
+                  <ProtectedRoute>
+                    <Navigate to={`/profile/${user.role}/${user.id}`} />
                   </ProtectedRoute>
                 } 
               />

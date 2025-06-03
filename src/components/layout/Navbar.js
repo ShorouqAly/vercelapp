@@ -43,6 +43,9 @@ const Navbar = () => {
                   {user.name} 
                   <span className="user-role">({user.role})</span>
                 </span>
+                <Link to={`/profile/${user.role}/${user.id}`} className="nav-link">
+                  My Profile
+                </Link>
                 <button onClick={handleLogout} className="nav-link logout-btn">
                   Logout
                 </button>

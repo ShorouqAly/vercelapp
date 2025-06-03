@@ -43,16 +43,28 @@ const Dashboard = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Welcome, {user.name}</h1>
-        {user.role === 'company' && (
-          <Link to="/announcements/new" className="btn btn-primary">
-            Create New Announcement
-          </Link>
-        )}
-        {user.role === 'journalist' && (
-          <Link to="/journalist/browse" className="btn btn-primary">
-            Browse Available Exclusives
-          </Link>
-        )}
+        <div className="header-actions">
+          {user.role === 'journalist' && (
+            <Link to={`/profile/journalist/${user.id}`} className="btn btn-outline">
+              View My Profile
+            </Link>
+          )}
+          {user.role === 'company' && (
+            <>
+              <Link to="/announcements/new" className="btn btn-primary">
+                Create New Announcement
+              </Link>
+              <Link to="/pr-generator" className="btn btn-secondary">
+                PR Generator
+              </Link>
+            </>
+          )}
+          {user.role === 'journalist' && (
+            <Link to="/journalist/browse" className="btn btn-primary">
+              Browse Available Exclusives
+            </Link>
+          )}
+        </div>
       </div>
       
       {error && <div className="alert alert-danger">{error}</div>}
