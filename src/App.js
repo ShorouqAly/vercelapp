@@ -14,6 +14,7 @@ import JournalistProfile from './components/profiles/JournalistProfile';
 import { Navbar } from './components/layout/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
+import SubscriptionPlans from './components/pricing/SubscriptionPlans';
 
 // API configuration
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -178,6 +179,22 @@ function AppRoutes() {
                     )}
                   </ProtectedRoute>
                 } 
+            />
+            <Route 
+              path="/pricing" 
+              element={
+                <ProtectedRoute allowedRoles={['company']}>
+                  <SubscriptionPlans />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/subscriptions" 
+              element={
+                <ProtectedRoute>
+                  <SubscriptionPlans />
+                </ProtectedRoute>
+              } 
             />
           </Routes>
         </div>

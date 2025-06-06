@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import './Announcements.css';
 import PRGenerator from '../pr-generator/PRGenerator';
+import PricingSelector from '../pricing/PricingSelector';
+
 
 const AnnouncementForm = () => {
   const navigate = useNavigate();
@@ -314,89 +316,31 @@ const AnnouncementForm = () => {
         return (
           <>
             <h2>Create New Announcement</h2>
-            <p>Step 3: Choose your plan and finalize</p>
+            <p>Step 3: Choose your pricing plan</p>
             
-            <div className="plan-selector">
-              <div 
-                className={`plan-card ${formData.plan === 'Basic' ? 'selected' : ''}`}
-                onClick={() => handleChange({ target: { name: 'plan', value: 'Basic' } })}
-              >
-                <h3>Basic Plan</h3>
-                <div className="plan-price">$99</div>
-                <ul className="plan-features">
-                  <li>Send to up to 20 relevant journalists</li>
-                  <li>Basic embargoed content security</li>
-                  <li>Standard journalist communication</li>
-                </ul>
-              </div>
-              
-              <div 
-                className={`plan-card ${formData.plan === 'Premium' ? 'selected' : ''}`}
-                onClick={() => handleChange({ target: { name: 'plan', value: 'Premium' } })}
-              >
-                <h3>Premium Plan</h3>
-                <div className="plan-price">$199</div>
-                <ul className="plan-features">
-                  <li>Send to up to 50 relevant journalists</li>
-                  <li>Enhanced distribution to top publications</li>
-                  <li>Priority placement in journalist feeds</li>
-                  <li>Revenue sharing with journalists (30%)</li>
-                  <li>Enhanced support & follow-up</li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="targetOutlets">Target Specific Outlets (Optional)</label>
-              <textarea
-                id="targetOutlets"
-                name="targetOutlets"
-                value={formData.targetOutlets.join(', ')}
-                onChange={(e) => setFormData(prev => ({
+            <PricingSelector 
+              onSelectPricing={(tier) => {
+                setFormData(prev => ({
                   ...prev,
-                  targetOutlets: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                }))}
-                rows="3"
-                placeholder="e.g. TechCrunch, The Verge, Wired (leave blank for open distribution)"
-              />
-            </div>
+                  selectedPricingTier: tier._id,
+                  plan: tier.name,
+                  fee: tier.price / 100
+                }));
+              }}
+              selectedTier={formData.selectedPricingTier}
+              announcementId={null}
+            />
             
-            <div className="pricing-summary">
-              <h4>Pricing Summary</h4>
-              <div className="price-line">
-                <span>{formData.plan} Plan</span>
-                <span>${formData.fee}</span>
-              </div>
-              {formData.needsWritingSupport && formData.writingSupportType !== 'none' && (
-                <div className="price-line">
-                  <span>Writing Support ({formData.writingSupportType.replace('_', ' ')})</span>
-                  <span>
-                    ${formData.writingSupportType === 'ai_generated' ? 49 : 
-                      formData.writingSupportType === 'human_assisted' ? 99 : 199}
-                  </span>
-                </div>
-              )}
-              <div className="price-line total">
-                <span><strong>Total</strong></span>
-                <span><strong>
-                  ${formData.fee + 
-                    (formData.needsWritingSupport && formData.writingSupportType !== 'none' ? 
-                      (formData.writingSupportType === 'ai_generated' ? 49 : 
-                       formData.writingSupportType === 'human_assisted' ? 99 : 199) : 0)}
-                </strong></span>
-              </div>
-            </div>
-            
-            <div className="form-buttons">
+            <div className="step-buttons">
               <button type="button" className="btn btn-outline" onClick={prevStep}>
                 Back
               </button>
               <button 
                 type="submit" 
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || !formData.selectedPricingTier}
               >
-                {loading ? 'Creating...' : 'Pay & Launch Announcement'}
+                {loading ? 'Creating...' : 'Create Announcement & Pay'}
               </button>
             </div>
           </>
