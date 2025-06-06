@@ -57,9 +57,6 @@ const Dashboard = () => {
               <Link to="/pr-generator" className="btn btn-secondary">
                 PR Generator
               </Link>
-              <Link to="/subscriptions" className="nav-link">
-                Premium Features
-              </Link>
             </>
           )}
           {user.role === 'journalist' && (

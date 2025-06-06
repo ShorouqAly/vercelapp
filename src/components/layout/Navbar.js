@@ -27,8 +27,15 @@ const Navbar = () => {
               </Link>
               
               {user.role === 'company' && (
+
                 <Link to="/announcements/new" className="nav-link">
                   New Announcement
+                </Link>
+              )}
+              {user.role === 'company' && (
+
+                <Link to="/subscriptions" className="nav-link">
+                  Premium Features
                 </Link>
               )}
               
