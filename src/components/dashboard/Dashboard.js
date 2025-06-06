@@ -57,6 +57,9 @@ const Dashboard = () => {
               <Link to="/pr-generator" className="btn btn-secondary">
                 PR Generator
               </Link>
+              <Link to="/subscriptions" className="nav-link">
+                Premium Features
+              </Link>
             </>
           )}
           {user.role === 'journalist' && (
@@ -81,6 +84,20 @@ const Dashboard = () => {
 };
 
 const CompanyDashboard = ({ announcements }) => {
+  const [revenueData, setRevenueData] = useState(null);
+
+  useEffect(() => {
+    const fetchRevenue = async () => {
+      try {
+        const response = await axios.get('/api/analytics/revenue'); // Adjust endpoint if needed
+        setRevenueData(response.data);
+      } catch (error) {
+        console.error('Failed to fetch revenue data');
+      }
+    };
+
+    fetchRevenue();
+  }, []);
   if (announcements.length === 0) {
     return (
       <div className="empty-state">
@@ -94,41 +111,65 @@ const CompanyDashboard = ({ announcements }) => {
   }
   
   return (
-    <div className="announcement-list">
-      <h2>Your Announcements</h2>
-      <div className="announcement-cards">
-        {announcements.map(announcement => (
-          <div key={announcement._id} className="announcement-card">
-            <div className="card-status">
-              {getStatusBadge(announcement.status)}
-            </div>
-            <h3>{announcement.title}</h3>
-            <div className="card-meta">
-              <span className="plan-badge">{announcement.plan} Plan</span>
-              <span className="embargo">
-                Embargo: {new Date(announcement.embargoDateTime).toLocaleDateString()}
-              </span>
-            </div>
-            {announcement.status === 'claimed' && announcement.exclusiveClaimedBy && (
-              <div className="claimed-by">
-                Claimed by: {announcement.exclusiveClaimedBy.name} ({announcement.exclusiveClaimedBy.publication})
-              </div>
-            )}
-            <div className="card-tags">
-              {announcement.industryTags.slice(0, 3).map(tag => (
-                <span key={tag} className="tag">{tag}</span>
-              ))}
-            </div>
-            <Link to={`/announcements/${announcement._id}`} className="btn btn-outline">
-              View Details
-            </Link>
-            {announcement.status === 'claimed' && (
-              <Link to={`/announcements/${announcement._id}/chat`} className="btn btn-secondary">
-                Open Chat
-              </Link>
-            )}
+    <div>
+      {revenueData && (
+        <div className="revenue-metrics grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold">Total Revenue</h3>
+            <p className="text-2xl font-bold text-green-600">
+              ${(revenueData.totalRevenue / 100).toLocaleString()}
+            </p>
           </div>
-        ))}
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold">Journalist Payouts</h3>
+            <p className="text-2xl font-bold text-blue-600">
+              ${(revenueData.journalistPayouts / 100).toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold">Transactions</h3>
+            <p className="text-2xl font-bold text-purple-600">
+              {revenueData.transactionCount}
+            </p>
+          </div>
+        </div>
+      )}
+      <div className="announcement-list">
+        <h2>Your Announcements</h2>
+        <div className="announcement-cards">
+          {announcements.map(announcement => (
+            <div key={announcement._id} className="announcement-card">
+              <div className="card-status">
+                {getStatusBadge(announcement.status)}
+              </div>
+              <h3>{announcement.title}</h3>
+              <div className="card-meta">
+                <span className="plan-badge">{announcement.plan} Plan</span>
+                <span className="embargo">
+                  Embargo: {new Date(announcement.embargoDateTime).toLocaleDateString()}
+                </span>
+              </div>
+              {announcement.status === 'claimed' && announcement.exclusiveClaimedBy && (
+                <div className="claimed-by">
+                  Claimed by: {announcement.exclusiveClaimedBy.name} ({announcement.exclusiveClaimedBy.publication})
+                </div>
+              )}
+              <div className="card-tags">
+                {announcement.industryTags.slice(0, 3).map(tag => (
+                  <span key={tag} className="tag">{tag}</span>
+                ))}
+              </div>
+              <Link to={`/announcements/${announcement._id}`} className="btn btn-outline">
+                View Details
+              </Link>
+              {announcement.status === 'claimed' && (
+                <Link to={`/announcements/${announcement._id}/chat`} className="btn btn-secondary">
+                  Open Chat
+                </Link>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

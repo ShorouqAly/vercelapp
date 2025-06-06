@@ -79,15 +79,28 @@ const AnnouncementForm = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       const embargoDate = new Date(formData.embargoDateTime);
-      
-      const response = await axios.post('/api/announcements', {
+
+      // Step 1: Create the announcement
+      const announcementResponse = await axios.post('/api/announcements', {
         ...formData,
         embargoDateTime: embargoDate
       });
-      
-      navigate(`/announcements/${response.data._id}`);
+
+      const announcement = announcementResponse.data;
+
+      // Step 2: Create payment intent
+      const paymentResponse = await axios.post('/api/payments/announcement/create-intent', {
+        announcementId: announcement._id,
+        pricingTierId: formData.selectedPricingTier // assuming formData has this
+      });
+
+      const { checkoutUrl } = paymentResponse.data;
+
+      // Step 3: Redirect to Stripe Checkout
+      window.location.href = checkoutUrl;
+
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create announcement. Please try again.');
       setStep(1);
@@ -95,6 +108,7 @@ const AnnouncementForm = () => {
       setLoading(false);
     }
   };
+
   
   const renderStep = () => {
     switch (step) {
