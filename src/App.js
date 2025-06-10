@@ -102,7 +102,15 @@ const Home = () => {
 };
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth(); // Destructure loading as well
+
+  if (loading) {
+    // Show a loading indicator while authentication state is being determined
+    return <div className="loading">Loading application...</div>;
+  }
+
+  // Determine userRole early, with a fallback if user is null/undefined
+  const userRole = user ? user.role : null; // Provide a default or handle null
 
   return (
     <Router>
@@ -114,97 +122,105 @@ function AppRoutes() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
+
             {/* Protected Routes */}
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+
             {/* Company Routes */}
-            <Route 
-              path="/announcements/new" 
+            <Route
+              path="/announcements/new"
               element={
                 <ProtectedRoute allowedRoles={['company']}>
                   <AnnouncementForm />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+
             {/* Journalist Routes */}
-            <Route 
-              path="/journalist/browse" 
+            <Route
+              path="/journalist/browse"
               element={
                 <ProtectedRoute allowedRoles={['journalist']}>
                   <JournalistBrowse />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+
             {/* Shared Protected Routes */}
-            <Route 
-              path="/announcements/:id" 
+            <Route
+              path="/announcements/:id"
               element={
                 <ProtectedRoute>
                   <AnnouncementDetails />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/announcements/:id/chat" 
+            <Route
+              path="/announcements/:id/chat"
               element={
                 <ProtectedRoute>
                   <ChatInterface />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/profile/journalist/:id" 
+            <Route
+              path="/profile/journalist/:id"
               element={
                 <ProtectedRoute>
                   <JournalistProfile />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-                path="/profile/edit" 
-                element={
-                  <ProtectedRoute>
-                    {user ? (
-                      <Navigate to={`/profile/${user.role}/${user.id}`} />
-                    ) : (
-                      <div>Loading...</div> // or redirect to login or dashboard
-                    )}
-                  </ProtectedRoute>
-                } 
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  {user ? (
+                    <Navigate to={`/profile/${user.role}/${user.id}`} />
+                  ) : (
+                    // If user is null here, it means we're still loading or unauthenticated
+                    // ProtectedRoute already handles redirect for unauthenticated.
+                    // This block will mostly hit if loading is true (handled above)
+                    // or if there's a weird state where isAuthenticated is true but user is null.
+                    <div>Redirecting...</div>
+                  )}
+                </ProtectedRoute>
+              }
             />
-            <Route 
-              path="/pricing" 
+            <Route
+              path="/pricing"
               element={
                 <ProtectedRoute allowedRoles={['company']}>
                   <SubscriptionPlans />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/subscriptions" 
+            <Route
+              path="/subscriptions"
               element={
                 <ProtectedRoute>
                   <SubscriptionPlans />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/reviewmatch" 
+            {/* Correctly wrap ReviewMatchDashboard in ProtectedRoute */}
+            <Route
+              path="/reviewmatch"
               element={
-                <ReviewMatchProvider>
-                  <ReviewMatchDashboard userRole={user.role} />
-                </ReviewMatchProvider>
-              } 
+                <ProtectedRoute> {/* Ensure user is loaded and authenticated */}
+                  <ReviewMatchProvider>
+                    {/* Only pass user.role if user is not null */}
+                    <ReviewMatchDashboard userRole={userRole} />
+                  </ReviewMatchProvider>
+                </ProtectedRoute>
+              }
             />
           </Routes>
         </div>
