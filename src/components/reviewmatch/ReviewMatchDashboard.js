@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Package, Star, Clock, MapPin, DollarSign, Users, TrendingUp, CheckCircle, AlertCircle, Camera, Video, ExternalLink, Filter, Search, Plus, Eye, Heart, MessageSquare, BarChart3 } from 'lucide-react';
+import { X, ChevronRight, Package, Star, Clock, MapPin, DollarSign, Users, TrendingUp, CheckCircle, AlertCircle, Camera, Video, ExternalLink, Filter, Search, Plus, Eye, Heart, MessageSquare, BarChart3 } from 'lucide-react';
 import './ReviewMatchDashboard.css';
+import axios from 'axios';
+
 
 // Main ReviewMatch Marketplace Dashboard
 const ReviewMatchDashboard = ({ userRole }) => {
@@ -2009,6 +2011,19 @@ const ReviewAnalytics = () => {
     </div>
   );
 };
+
+
+const JournalistEarnings = () => <div className="placeholder-card">
+  <DollarSign />
+  <h2>My Earnings</h2>
+  <p>Track your earnings from completed reviews.</p>
+</div>;
+
+const CompletedReviews = () => <div className="placeholder-card">
+  <CheckCircle />
+  <h2>Completed Reviews</h2>
+  <p>Browse your history of finished reviews.</p>
+</div>;
 
 export {
   ReviewMatchDashboard,
