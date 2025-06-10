@@ -1,636 +1,470 @@
-// COMPLETION OF REVIEWREQUESTMANAGER COMPONENT
-const ReviewRequestManager = () => {
-  const [requests, setRequests] = useState([]);
-  const [filter, setFilter] = useState('pending');
-  const [loading, setLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState(null);
 
-  const mockRequests = [
-    {
-      _id: '1',
-      journalistId: { 
-        name: 'Sarah Chen', 
-        email: 'sarah@techcrunch.com',
-        profile: { outlet: 'TechCrunch', specializations: ['AI', 'Startups'], rating: 4.9 }
-      },
-      productId: { productInfo: { name: 'WirelessPro Earbuds', msrp: 19900 } },
-      requestInfo: {
-        proposedOutlet: 'TechCrunch',
-        estimatedReach: 250000,
-        pitchMessage: 'I\'d like to review these earbuds for our upcoming holiday gift guide.',
-        plannedAngle: 'Holiday gift guide inclusion',
-        estimatedPublishDate: new Date('2024-02-15'),
-        audienceData: { monthlyPageviews: 2500000, socialFollowing: 45000 }
-      },
-      companyReview: { status: 'pending' },
-      created: new Date('2024-01-18')
-    }
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Package, Star, Clock, MapPin, DollarSign, Users, TrendingUp, CheckCircle, AlertCircle, Camera, Video, ExternalLink, Filter, Search, Plus, Eye, Heart, MessageSquare, BarChart3 } from 'lucide-react';
+
+// Main ReviewMatch Marketplace Dashboard
+const ReviewMatchDashboard = ({ userRole }) => {
+  const [activeTab, setActiveTab] = useState(userRole === 'company' ? 'my-products' : 'marketplace');
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    activeRequests: 0,
+    completedReviews: 0,
+    totalEarnings: 0
+  });
+
+  const tabs = userRole === 'company' ? [
+    { id: 'my-products', label: 'My Products', icon: Package },
+    { id: 'requests', label: 'Review Requests', icon: Users },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'create-product', label: 'Add Product', icon: Plus }
+  ] : [
+    { id: 'marketplace', label: 'Marketplace', icon: Package },
+    { id: 'my-requests', label: 'My Requests', icon: Clock },
+    { id: 'completed', label: 'Completed', icon: CheckCircle },
+    { id: 'earnings', label: 'Earnings', icon: DollarSign }
   ];
 
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const response = await axios.get('/api/reviewmatch/requests', {
-          params: { status: filter }
-        });
-        setRequests(response.data.requests);
-      } catch (error) {
-        console.error('Failed to fetch requests');
-        setRequests(mockRequests);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRequests();
-  }, [filter]);
-
-  const handleRequestAction = async (requestId, action, notes = '') => {
-    try {
-      await axios.put(`/api/reviewmatch/requests/${requestId}/status`, {
-        status: action,
-        reviewNotes: notes
-      });
-      
-      // Update local state
-      setRequests(prev => prev.map(req => 
-        req._id === requestId 
-          ? { ...req, companyReview: { ...req.companyReview, status: action, reviewNotes: notes } }
-          : req
-      ));
-      
-      setSelectedRequest(null);
-      alert(`Request ${action} successfully!`);
-    } catch (error) {
-      console.error('Failed to update request');
-      alert('Failed to update request. Please try again.');
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case 'marketplace':
+        return <ProductMarketplace />;
+      case 'my-products':
+        return <MyProductsList />;
+      case 'create-product':
+        return <ProductSubmissionForm />;
+      case 'requests':
+        return <ReviewRequestManager />;
+      case 'my-requests':
+        return <JournalistRequests />;
+      case 'analytics':
+        return <ReviewAnalytics />;
+      case 'earnings':
+        return <JournalistEarnings />;
+      case 'completed':
+        return <CompletedReviews />;
+      default:
+        return <ProductMarketplace />;
     }
   };
 
-  const filteredRequests = requests.filter(req => 
-    filter === 'all' || req.companyReview.status === filter
-  );
-
-  if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading requests...</div>;
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Header and Filters */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">Review Requests</h2>
-        
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2"
-        >
-          <option value="pending">Pending Review</option>
-          <option value="approved">Approved</option>
-          <option value="declined">Declined</option>
-          <option value="all">All Requests</option>
-        </select>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">ReviewMatch Marketplace</h1>
+            <p className="text-gray-600">
+              {userRole === 'company' 
+                ? 'Connect your products with journalists for authentic reviews'
+                : 'Discover products to review and build your portfolio'
+              }
+            </p>
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{stats.totalProducts}</div>
+              <div className="text-xs text-gray-600">
+                {userRole === 'company' ? 'Products' : 'Available'}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{stats.activeRequests}</div>
+              <div className="text-xs text-gray-600">Active</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{stats.completedReviews}</div>
+              <div className="text-xs text-gray-600">Completed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                ${(stats.totalEarnings / 100).toLocaleString()}
+              </div>
+              <div className="text-xs text-gray-600">
+                {userRole === 'company' ? 'Invested' : 'Earned'}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Requests List */}
-      <div className="space-y-4">
-        {filteredRequests.map((request) => (
-          <div key={request._id} className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="font-semibold text-gray-900">{request.journalistId.name}</h3>
-                  <span className="text-sm text-gray-600">from {request.journalistId.profile.outlet}</span>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400" />
-                    <span className="text-sm text-gray-600 ml-1">{request.journalistId.profile.rating}</span>
-                  </div>
-                </div>
-                
-                <p className="text-gray-700 mb-3">{request.requestInfo.pitchMessage}</p>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                  <div>
-                    <span className="font-medium">Product:</span>
-                    <div>{request.productId.productInfo.name}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium">Outlet:</span>
-                    <div>{request.requestInfo.proposedOutlet}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium">Est. Reach:</span>
-                    <div>{request.requestInfo.estimatedReach.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium">Publish Date:</span>
-                    <div>{request.requestInfo.estimatedPublishDate.toLocaleDateString()}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex space-x-2 ml-4">
-                {request.companyReview.status === 'pending' && (
-                  <>
-                    <button
-                      onClick={() => handleRequestAction(request._id, 'approved')}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleRequestAction(request._id, 'declined')}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
-                    >
-                      Decline
-                    </button>
-                  </>
-                )}
+      <div className="flex">
+        {/* Navigation */}
+        <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+          <nav className="p-4 space-y-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
                 <button
-                  onClick={() => setSelectedRequest(request)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === tab.id
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
                 >
-                  View Details
+                  <Icon className="w-5 h-5 mr-3" />
+                  {tab.label}
                 </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredRequests.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No requests found</h3>
-          <p className="text-gray-600">No review requests match your current filter</p>
+              );
+            })}
+          </nav>
         </div>
-      )}
 
-      {/* Request Details Modal */}
-      {selectedRequest && (
-        <RequestDetailsModal 
-          request={selectedRequest}
-          onClose={() => setSelectedRequest(null)}
-          onAction={handleRequestAction}
-        />
-      )}
-    </div>
-  );
-};
-
-// REQUEST DETAILS MODAL COMPONENT
-const RequestDetailsModal = ({ request, onClose, onAction }) => {
-  const [notes, setNotes] = useState('');
-  const [action, setAction] = useState('');
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full m-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Request Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            {/* Journalist Info */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Journalist Information</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm text-gray-600">Name:</span>
-                    <div className="font-medium">{request.journalistId.name}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Email:</span>
-                    <div className="font-medium">{request.journalistId.email}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Outlet:</span>
-                    <div className="font-medium">{request.journalistId.profile.outlet}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Rating:</span>
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                      <span className="font-medium">{request.journalistId.profile.rating}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <span className="text-sm text-gray-600">Specializations:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {request.journalistId.profile.specializations.map((spec, index) => (
-                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        {spec}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Request Details */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Request Details</h3>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm text-gray-600">Pitch Message:</span>
-                  <p className="text-gray-900 mt-1">{request.requestInfo.pitchMessage}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm text-gray-600">Proposed Outlet:</span>
-                    <div className="font-medium">{request.requestInfo.proposedOutlet}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Estimated Reach:</span>
-                    <div className="font-medium">{request.requestInfo.estimatedReach.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Planned Angle:</span>
-                    <div className="font-medium">{request.requestInfo.plannedAngle}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Est. Publish Date:</span>
-                    <div className="font-medium">{request.requestInfo.estimatedPublishDate.toLocaleDateString()}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Audience Data */}
-            {request.requestInfo.audienceData && (
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Audience Data</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-sm text-gray-600">Monthly Pageviews:</span>
-                      <div className="font-medium">{request.requestInfo.audienceData.monthlyPageviews.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-600">Social Following:</span>
-                      <div className="font-medium">{request.requestInfo.audienceData.socialFollowing.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Action Section */}
-            {request.companyReview.status === 'pending' && (
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Take Action</h3>
-                <div className="space-y-3">
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add notes (optional)..."
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  />
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => {
-                        onAction(request._id, 'approved', notes);
-                      }}
-                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    >
-                      Approve Request
-                    </button>
-                    <button
-                      onClick={() => {
-                        onAction(request._id, 'declined', notes);
-                      }}
-                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    >
-                      Decline Request
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          {renderActiveTab()}
         </div>
       </div>
     </div>
   );
 };
 
-// JOURNALIST REQUESTS COMPONENT
-const JournalistRequests = () => {
-  const [requests, setRequests] = useState([]);
-  const [filter, setFilter] = useState('all');
+// Product Marketplace (Journalist View)
+const ProductMarketplace = () => {
+  const [products, setProducts] = useState([]);
+  const [filters, setFilters] = useState({
+    category: '',
+    productType: '',
+    minValue: '',
+    maxValue: '',
+    searchTerm: ''
+  });
   const [loading, setLoading] = useState(true);
 
-  const mockRequests = [
+  const mockProducts = [
     {
       _id: '1',
-      productId: { 
-        productInfo: { name: 'WirelessPro Earbuds', brand: 'AudioTech', msrp: 19900 },
-        companyId: { name: 'AudioTech Inc.' }
+      productInfo: {
+        name: 'WirelessPro Earbuds',
+        brand: 'AudioTech',
+        category: 'electronics',
+        description: 'Premium wireless earbuds with noise cancellation and 30-hour battery life.',
+        msrp: 19900,
+        features: ['Noise Cancellation', '30h Battery', 'Wireless Charging', 'IPX7 Waterproof']
       },
-      requestInfo: {
-        pitchMessage: 'I\'d like to review these earbuds for our upcoming holiday gift guide.',
-        proposedOutlet: 'TechCrunch',
-        estimatedReach: 250000
+      media: {
+        images: ['/api/placeholder/300/200']
       },
-      companyReview: { status: 'approved', reviewDate: new Date('2024-01-19') },
-      fulfillment: { fulfillmentStatus: 'shipped', shippingInfo: { trackingNumber: 'ABC123' } },
-      reviewCompletion: { status: 'in_progress' },
-      created: new Date('2024-01-18')
+      campaign: {
+        campaignTier: 'premium',
+        maxReviewers: 15
+      },
+      reviewRequirements: {
+        minWordCount: 800,
+        reviewType: 'individual',
+        coverageDeadline: 21
+      },
+      logistics: {
+        productType: 'physical',
+        shippingRequired: true,
+        estimatedDeliveryDays: 5
+      },
+      analytics: {
+        requests: 23,
+        approved: 18
+      },
+      companyId: {
+        name: 'AudioTech Inc.'
+      }
+    },
+    {
+      _id: '2',
+      productInfo: {
+        name: 'TaskMaster Pro',
+        brand: 'ProductiveSoft',
+        category: 'software',
+        description: 'Advanced project management software with AI-powered insights.',
+        msrp: 9900,
+        features: ['AI Insights', 'Team Collaboration', 'Time Tracking', 'Custom Workflows']
+      },
+      media: {
+        images: ['/api/placeholder/300/200']
+      },
+      campaign: {
+        campaignTier: 'basic',
+        maxReviewers: 10
+      },
+      reviewRequirements: {
+        minWordCount: 600,
+        reviewType: 'individual',
+        coverageDeadline: 14
+      },
+      logistics: {
+        productType: 'subscription',
+        subscriptionLength: 30
+      },
+      analytics: {
+        requests: 15,
+        approved: 12
+      },
+      companyId: {
+        name: 'ProductiveSoft'
+      }
     }
   ];
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const response = await axios.get('/api/reviewmatch/requests');
-        setRequests(response.data.requests);
-      } catch (error) {
-        console.error('Failed to fetch requests');
-        setRequests(mockRequests);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRequests();
+    // Replace with actual API call
+    // fetchProducts();
+    setTimeout(() => {
+      setProducts(mockProducts);
+      setLoading(false);
+    }, 1000);
   }, []);
 
-  const filteredRequests = requests.filter(req => {
-    if (filter === 'all') return true;
-    if (filter === 'pending') return req.companyReview.status === 'pending';
-    if (filter === 'approved') return req.companyReview.status === 'approved';
-    if (filter === 'in_progress') return req.reviewCompletion.status === 'in_progress';
-    return false;
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = !filters.category || product.productInfo.category === filters.category;
+    const matchesType = !filters.productType || product.logistics.productType === filters.productType;
+    const matchesSearch = !filters.searchTerm || 
+      product.productInfo.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+      product.productInfo.brand.toLowerCase().includes(filters.searchTerm.toLowerCase());
+    
+    return matchesCategory && matchesType && matchesSearch;
   });
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading your requests...</div>;
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Header and Filters */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">My Requests</h2>
-        
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2"
-        >
-          <option value="all">All Requests</option>
-          <option value="pending">Pending Approval</option>
-          <option value="approved">Approved</option>
-          <option value="in_progress">In Progress</option>
-        </select>
-      </div>
-
-      {/* Requests List */}
+    return (
       <div className="space-y-4">
-        {filteredRequests.map((request) => (
-          <div key={request._id} className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="font-semibold text-gray-900">{request.productId.productInfo.name}</h3>
-                  <span className="text-sm text-gray-600">by {request.productId.productInfo.brand}</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    request.companyReview.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    request.companyReview.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {request.companyReview.status}
-                  </span>
-                </div>
-                
-                <p className="text-gray-700 mb-3">{request.requestInfo.pitchMessage}</p>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                  <div>
-                    <span className="font-medium">Company:</span>
-                    <div>{request.productId.companyId.name}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium">Value:</span>
-                    <div>${(request.productId.productInfo.msrp / 100).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium">Requested:</span>
-                    <div>{request.created.toLocaleDateString()}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium">Status:</span>
-                    <div className="capitalize">{request.reviewCompletion.status.replace('_', ' ')}</div>
-                  </div>
-                </div>
-
-                {/* Tracking Info */}
-                {request.fulfillment?.fulfillmentStatus === 'shipped' && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="flex items-center text-blue-800">
-                      <Package className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium">
-                        Shipped - Tracking: {request.fulfillment.shippingInfo.trackingNumber}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex space-x-2 ml-4">
-                {request.companyReview.status === 'approved' && 
-                 request.reviewCompletion.status === 'not_started' && (
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                    Start Review
-                  </button>
-                )}
-                {request.reviewCompletion.status === 'in_progress' && (
-                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
-                    Submit Coverage
-                  </button>
-                )}
-                <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
-                  View Details
-                </button>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
+            <div className="flex space-x-4">
+              <div className="w-32 h-24 bg-gray-300 rounded"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                <div className="h-3 bg-gray-300 rounded w-full"></div>
               </div>
             </div>
           </div>
         ))}
       </div>
+    );
+  }
 
-      {filteredRequests.length === 0 && (
-        <div className="text-center py-12">
-          <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No requests found</h3>
-          <p className="text-gray-600 mb-4">Start browsing the marketplace to request products for review</p>
-          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Browse Marketplace
+  return (
+    <div className="space-y-6">
+      {/* Search and Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search products or brands..."
+                value={filters.searchTerm}
+                onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+          
+          <select
+            value={filters.category}
+            onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+            className="border border-gray-300 rounded-lg px-3 py-2"
+          >
+            <option value="">All Categories</option>
+            <option value="electronics">Electronics</option>
+            <option value="software">Software</option>
+            <option value="beauty">Beauty</option>
+            <option value="home">Home</option>
+            <option value="food">Food & Beverage</option>
+          </select>
+          
+          <select
+            value={filters.productType}
+            onChange={(e) => setFilters(prev => ({ ...prev, productType: e.target.value }))}
+            className="border border-gray-300 rounded-lg px-3 py-2"
+          >
+            <option value="">All Types</option>
+            <option value="physical">Physical Product</option>
+            <option value="digital">Digital Product</option>
+            <option value="subscription">Subscription</option>
+            <option value="service">Service</option>
+          </select>
+          
+          <button className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
           </button>
+        </div>
+      </div>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {filteredProducts.map((product) => (
+          <ProductCard key={product._id} product={product} />
+        ))}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-12">
+          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+          <p className="text-gray-600">Try adjusting your search criteria</p>
         </div>
       )}
     </div>
   );
 };
 
-// ANALYTICS COMPONENT
-const ReviewAnalytics = () => {
-  const [analyticsData, setAnalyticsData] = useState(null);
-  const [timeRange, setTimeRange] = useState('30d');
-  const [loading, setLoading] = useState(true);
-
-  const mockAnalytics = {
-    overview: {
-      totalCampaigns: 5,
-      totalInvestment: 74700, // in cents
-      totalReviews: 23,
-      averageRating: 4.2,
-      totalReach: 2400000
-    },
-    campaigns: [
-      {
-        productName: 'WirelessPro Earbuds',
-        investment: 14900,
-        reviews: 12,
-        avgRating: 4.5,
-        totalReach: 1200000,
-        roi: 8.2
-      }
-    ],
-    recentActivity: [
-      {
-        type: 'review_published',
-        journalist: 'Sarah Chen',
-        product: 'WirelessPro Earbuds',
-        outlet: 'TechCrunch',
-        date: new Date('2024-01-20')
-      }
-    ]
-  };
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const response = await axios.get(`/api/reviewmatch/analytics/company?range=${timeRange}`);
-        setAnalyticsData(response.data);
-      } catch (error) {
-        console.error('Failed to fetch analytics');
-        setAnalyticsData(mockAnalytics);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnalytics();
-  }, [timeRange]);
-
-  if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading analytics...</div>;
-  }
+// Product Card Component
+const ProductCard = ({ product, showManageButtons = false }) => {
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">Analytics</h2>
-        
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2"
-        >
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="90d">Last 90 days</option>
-          <option value="1y">Last year</option>
-        </select>
-      </div>
-
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-2xl font-bold text-blue-600">{analyticsData.overview.totalCampaigns}</div>
-          <div className="text-sm text-gray-600">Total Campaigns</div>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-2xl font-bold text-green-600">
-            ${(analyticsData.overview.totalInvestment / 100).toLocaleString()}
+    <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
+      <div className="p-6">
+        <div className="flex space-x-4">
+          {/* Product Image */}
+          <div className="w-32 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+            {product.media?.images?.[0] ? (
+              <img 
+                src={product.media.images[0]} 
+                alt={product.productInfo.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Package className="w-8 h-8 text-gray-400" />
+            )}
           </div>
-          <div className="text-sm text-gray-600">Total Investment</div>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-2xl font-bold text-purple-600">{analyticsData.overview.totalReviews}</div>
-          <div className="text-sm text-gray-600">Reviews Published</div>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-2xl font-bold text-yellow-600">{analyticsData.overview.averageRating}</div>
-          <div className="text-sm text-gray-600">Avg Rating</div>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="text-2xl font-bold text-orange-600">
-            {(analyticsData.overview.totalReach / 1000000).toFixed(1)}M
-          </div>
-          <div className="text-sm text-gray-600">Total Reach</div>
-        </div>
-      </div>
 
-      {/* Campaign Performance */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Campaign Performance</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2">Product</th>
-                <th className="text-left py-2">Investment</th>
-                <th className="text-left py-2">Reviews</th>
-                <th className="text-left py-2">Avg Rating</th>
-                <th className="text-left py-2">Reach</th>
-                <th className="text-left py-2">ROI</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analyticsData.campaigns.map((campaign, index) => (
-                <tr key={index} className="border-b border-gray-100">
-                  <td className="py-3 font-medium">{campaign.productName}</td>
-                  <td className="py-3">${(campaign.investment / 100).toLocaleString()}</td>
-                  <td className="py-3">{campaign.reviews}</td>
-                  <td className="py-3">
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                      {campaign.avgRating}
-                    </div>
-                  </td>
-                  <td className="py-3">{(campaign.totalReach / 1000).toFixed(0)}K</td>
-                  <td className="py-3">
-                    <span className="text-green-600 font-medium">{campaign.roi}x</span>
-                  </td>
-                </tr>
+          {/* Product Info */}
+          <div className="flex-1">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <h3 className="font-semibold text-gray-900">{product.productInfo.name}</h3>
+                <p className="text-sm text-gray-600">{product.productInfo.brand}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-green-600">
+                  ${(product.productInfo.msrp / 100).toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">MSRP</div>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+              {product.productInfo.description}
+            </p>
+
+            {/* Product Features */}
+            <div className="flex flex-wrap gap-1 mb-3">
+              {product.productInfo.features?.slice(0, 3).map((feature, index) => (
+                <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {feature}
+                </span>
               ))}
-            </tbody>
-          </table>
+              {product.productInfo.features?.length > 3 && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  +{product.productInfo.features.length - 3} more
+                </span>
+              )}
+            </div>
+
+            {/* Campaign Info */}
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center">
+                  <Clock className="w-4 h-4 mr-1" />
+                  {product.reviewRequirements.coverageDeadline} days
+                </div>
+                <div className="flex items-center">
+                  <Users className="w-4 h-4 mr-1" />
+                  {product.analytics.requests || 0} requests
+                </div>
+                <div className="flex items-center">
+                  {product.logistics.productType === 'physical' ? (
+                    <>
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Ships
+                    </>
+                  ) : (
+                    <>
+                      <Star className="w-4 h-4 mr-1" />
+                      Digital
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                product.campaign.campaignTier === 'premium' ? 'bg-purple-100 text-purple-800' :
+                product.campaign.campaignTier === 'enterprise' ? 'bg-gold-100 text-gold-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {product.campaign.campaignTier}
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-2">
+              {!showManageButtons ? (
+                <>
+                  <button 
+                    onClick={() => setShowDetails(!showDetails)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                  >
+                    View Details
+                  </button>
+                  <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                    Request Sample
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                    Edit
+                  </button>
+                  <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+                    Analytics
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Expanded Details */}
+        {showDetails && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Review Requirements</h4>
+                <ul className="space-y-1 text-gray-600">
+                  <li>• Min {product.reviewRequirements.minWordCount} words</li>
+                  <li>• {product.reviewRequirements.reviewType} review</li>
+                  <li>• {product.reviewRequirements.coverageDeadline} day deadline</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Company</h4>
+                <p className="text-gray-600">{product.companyId.name}</p>
+                <div className="flex items-center mt-1">
+                  <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                  <span className="text-sm">4.8 (32 reviews)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// EXPORT ALL COMPONENTS
-export {
-  ReviewMatchDashboard,
-  ProductMarketplace,
-  ProductCard,
-  MyProductsList,
-  ProductSubmissionForm,
-  ReviewRequestManager,
-  RequestDetailsModal,
-  JournalistRequests,
-  ReviewAnalytics
-};
+// Additional component stubs that would need full implementation
+const MyProductsList = () => <div>My Products List Component</div>;
+const ProductSubmissionForm = () => <div>Product Submission Form Component</div>;
+const ReviewRequestManager = () => <div>Review Request Manager Component</div>;
+const JournalistRequests = () => <div>Journalist Requests Component</div>;
+const ReviewAnalytics = () => <div>Review Analytics Component</div>;
+const JournalistEarnings = () => <div>Journalist Earnings Component</div>;
+const CompletedReviews = () => <div>Completed Reviews Component</div>;
+
+export default ReviewMatchDashboard;
