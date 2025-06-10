@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, Package, Star, Clock, MapPin, DollarSign, Users, TrendingUp, CheckCircle, AlertCircle, Camera, Video, ExternalLink, Filter, Search, Plus, Eye, Heart, MessageSquare, BarChart3 } from 'lucide-react';
+import './ReviewMatchDashboard.css';
 
 // Main ReviewMatch Marketplace Dashboard
 const ReviewMatchDashboard = ({ userRole }) => {
