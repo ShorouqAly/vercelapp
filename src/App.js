@@ -13,7 +13,7 @@ import ChatInterface from './components/chat/ChatInterface';
 import JournalistProfile from './components/profiles/JournalistProfile';
 import { Navbar } from './components/layout/Navbar';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import ReviewMatchDashboard  from './components/reviewmatch/ReviewMatchDashboard';
+import { ReviewMatchDashboard } from './components/reviewmatch/ReviewMatchDashboard';
 import { ReviewMatchProvider } from './contexts/ReviewMatchContext';
 import './App.css';
 import SubscriptionPlans from './components/pricing/SubscriptionPlans';
