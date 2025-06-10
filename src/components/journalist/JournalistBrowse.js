@@ -10,7 +10,7 @@ const JournalistBrowse = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
-  
+
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
@@ -23,66 +23,78 @@ const JournalistBrowse = () => {
         setLoading(false);
       }
     };
-    
+
     fetchAnnouncements();
   }, []);
-  
+
   const handleClaim = async (announcementId) => {
     try {
       setError('');
-      
+
       await axios.post(`/api/announcements/${announcementId}/claim`);
-      
+
       setAnnouncements(prev => prev.filter(a => a._id !== announcementId));
-      
+
       alert('Exclusive successfully claimed! Check your dashboard to continue.');
     } catch (err) {
       console.error('Error claiming exclusive:', err);
       setError(err.response?.data?.message || 'Failed to claim exclusive. Please try again.');
     }
   };
-  
+
   const filteredAnnouncements = announcements.filter(announcement => {
     if (filter === 'all') return true;
-    return announcement.industryTags.includes(filter) || 
-           announcement.journalistBeatTags.includes(filter);
+    // Add checks for industryTags and journalistBeatTags to ensure they are arrays
+    const industryTags = announcement.industryTags || [];
+    const journalistBeatTags = announcement.journalistBeatTags || [];
+    return industryTags.includes(filter) ||
+           journalistBeatTags.includes(filter);
   });
-  
+
   const getUniqueFilters = () => {
     const tags = new Set();
     announcements.forEach(a => {
-      a.industryTags.forEach(tag => tags.add(tag));
-      a.journalistBeatTags.forEach(tag => tags.add(tag));
+      // Add checks before iterating over tags
+      if (a.industryTags && Array.isArray(a.industryTags)) {
+        a.industryTags.forEach(tag => tags.add(tag));
+      }
+      if (a.journalistBeatTags && Array.isArray(a.journalistBeatTags)) {
+        a.journalistBeatTags.forEach(tag => tags.add(tag));
+      }
     });
     return Array.from(tags).sort();
   };
-  
+
   if (loading) {
     return <div className="loading">Loading available exclusives...</div>;
   }
-  
+
   return (
     <div className="journalist-browse">
       <div className="browse-header">
         <h1>Available Exclusives</h1>
         <p>Discover and claim exclusive stories that match your beats</p>
       </div>
-      
+
       {error && <div className="alert alert-danger">{error}</div>}
-      
+
       {announcements.length === 0 ? (
         <div className="empty-state">
           <h3>No matching exclusives available</h3>
           <p>There are currently no announcements that match your beats. Check back later or update your beat preferences in your profile.</p>
           <div className="your-beats">
-            <strong>Your beats:</strong> {user.beatTags.join(', ')}
+            <strong>Your beats:</strong>{' '}
+            {/* THIS IS THE CRITICAL CHANGE */}
+            {user && user.beatTags && Array.isArray(user.beatTags) && user.beatTags.length > 0
+              ? user.beatTags.join(', ')
+              : 'None set. Please update your profile.'}
           </div>
         </div>
       ) : (
         <>
           <div className="browse-filters">
             <label htmlFor="filter">Filter by category:</label>
-            <select 
+            <select
               id="filter"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
@@ -96,10 +108,10 @@ const JournalistBrowse = () => {
               {filteredAnnouncements.length} exclusives available
             </span>
           </div>
-          
+
           <div className="announcement-cards">
             {filteredAnnouncements.map(announcement => (
-              <AnnouncementCard 
+              <AnnouncementCard
                 key={announcement._id}
                 announcement={announcement}
                 onClaim={handleClaim}
@@ -115,7 +127,7 @@ const JournalistBrowse = () => {
 const AnnouncementCard = ({ announcement, onClaim }) => {
   const [expanded, setExpanded] = useState(false);
   const [claiming, setClaiming] = useState(false);
-  
+
   const handleClaim = async () => {
     setClaiming(true);
     try {
@@ -124,14 +136,14 @@ const AnnouncementCard = ({ announcement, onClaim }) => {
       setClaiming(false);
     }
   };
-  
+
   const isEmbargoSoon = () => {
     const embargoDate = new Date(announcement.embargoDateTime);
     const now = new Date();
     const hoursUntilEmbargo = (embargoDate - now) / (1000 * 60 * 60);
     return hoursUntilEmbargo <= 24;
   };
-  
+
   return (
     <div className="announcement-card journalist-card">
       {isEmbargoSoon() && (
@@ -139,40 +151,46 @@ const AnnouncementCard = ({ announcement, onClaim }) => {
           Embargo lifts soon!
         </div>
       )}
-      
+
       <div className="card-header">
         <h3>{announcement.title}</h3>
         <div className="card-meta">
           <span className="company-name">
-            {announcement.companyId.companyName || announcement.companyId.name}
+            {announcement.companyId?.companyName || announcement.companyId?.name || 'N/A'}
           </span>
           <span className="plan-badge">{announcement.plan}</span>
         </div>
       </div>
-      
+
       <div className="card-embargo">
         <strong>Embargo:</strong> {new Date(announcement.embargoDateTime).toLocaleString()}
       </div>
-      
+
       <div className="card-tags">
         <div className="tag-group">
           <strong>Industry:</strong>
-          {announcement.industryTags.map(tag => (
-            <span key={tag} className="tag industry-tag">{tag}</span>
-          ))}
+          {/* Add check for industryTags being an array */}
+          {announcement.industryTags && Array.isArray(announcement.industryTags) ?
+            announcement.industryTags.map(tag => (
+              <span key={tag} className="tag industry-tag">{tag}</span>
+            )) : <span>None</span>
+          }
         </div>
         <div className="tag-group">
           <strong>Beat:</strong>
-          {announcement.journalistBeatTags.map(tag => (
-            <span key={tag} className="tag beat-tag">{tag}</span>
-          ))}
+          {/* Add check for journalistBeatTags being an array */}
+          {announcement.journalistBeatTags && Array.isArray(announcement.journalistBeatTags) ?
+            announcement.journalistBeatTags.map(tag => (
+              <span key={tag} className="tag beat-tag">{tag}</span>
+            )) : <span>None</span>
+          }
         </div>
       </div>
-      
+
       <div className="card-summary">
         <p>{announcement.summary}</p>
       </div>
-      
+
       {expanded && (
         <div className="card-details">
           <div className="embargo-warning">
@@ -187,16 +205,16 @@ const AnnouncementCard = ({ announcement, onClaim }) => {
           </div>
         </div>
       )}
-      
+
       <div className="card-actions">
-        <button 
+        <button
           className="btn btn-outline"
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? 'Hide Details' : 'View More Details'}
         </button>
-        
-        <button 
+
+        <button
           className="btn btn-primary"
           onClick={handleClaim}
           disabled={claiming}
@@ -204,7 +222,7 @@ const AnnouncementCard = ({ announcement, onClaim }) => {
           {claiming ? 'Claiming...' : 'Claim Exclusive'}
         </button>
       </div>
-      
+
       <div className="card-created">
         Posted {new Date(announcement.created).toLocaleDateString()}
       </div>
