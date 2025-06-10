@@ -22,6 +22,12 @@ const Navbar = () => {
         <div className="nav-menu">
           {isAuthenticated ? (
             <>
+              {(user.role === 'company' || user.role === 'journalist') && (
+                <Link to="/reviewmatch" className="nav-link">
+                  <Package className="w-5 h-5 mr-2" />
+                  ReviewMatch
+                </Link>
+              )}
               <Link to="/dashboard" className="nav-link">
                 Dashboard
               </Link>
