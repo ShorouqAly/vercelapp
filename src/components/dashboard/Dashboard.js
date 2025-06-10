@@ -44,6 +44,12 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <h1>Welcome, {user.name}</h1>
         <div className="header-actions">
+          {(user.role === 'company' || user.role === 'journalist') && (
+            <Link to="/reviewmatch" className="nav-link">
+              <Package className="w-5 h-5 mr-2" />
+              ReviewMatch
+            </Link>
+          )}
           {user.role === 'journalist' && (
             <Link to={`/profile/journalist/${user.id}`} className="btn btn-outline">
               View My Profile
