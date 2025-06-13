@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ReviewMatchDashboard } from './components/reviewmatch/ReviewMatchDashboard';
 import { ReviewMatchProvider } from './contexts/ReviewMatchContext';
 import './App.css';
+import MediaValueEstimator from './components/analytics/MediaValueEstimator';
 import SubscriptionPlans from './components/pricing/SubscriptionPlans';
 
 // API configuration
@@ -222,6 +223,7 @@ function AppRoutes() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/analytics/mve" element={<MediaValueEstimator />} />
           </Routes>
         </div>
       </div>

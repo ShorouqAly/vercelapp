@@ -30,6 +30,10 @@ const Navbar = () => {
                 <Package className="w-5 h-5 mr-2" />
                 ReviewMatch
               </Link>
+              <Link to="/analytics/mve" className="nav-link">
+                <Package className="w-5 h-5 mr-2" />
+                Media Value Calculator
+              </Link>
               {user.role === 'company' && (
 
                 <Link to="/announcements/new" className="nav-link">
