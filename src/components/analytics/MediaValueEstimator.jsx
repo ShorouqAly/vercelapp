@@ -10,6 +10,58 @@ import {
   FileText, Video, Headphones, Image, Newspaper, Radio, Tv,
   RefreshCw, Database, Lightbulb, Settings, X
 } from 'lucide-react';
+import ArticleAmplifier from './amplification/ArticleAmplifier';
+
+
+const ArticleCard = ({ article }) => {
+  const [showAmplifier, setShowAmplifier] = useState(false);
+  const [mveData, setMveData] = useState(null);
+
+  const handleAmplify = async () => {
+    // Get MVE data first (if you have the MVE system)
+    try {
+      const response = await fetch(`/api/mve/calculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          publicationDomain: article.publicationDomain,
+          contentType: 'standard_article',
+          // ... other MVE parameters
+        })
+      });
+      const mveResult = await response.json();
+      setMveData(mveResult);
+    } catch (error) {
+      console.error('MVE calculation failed:', error);
+    }
+    
+    setShowAmplifier(true);
+  };
+
+  return (
+    <div className="article-card">
+      {/* Your existing article content */}
+      <div className="article-actions">
+        <button
+          onClick={handleAmplify}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+        >
+          <TrendingUp className="w-4 h-4 mr-2" />
+          Amplify Article
+        </button>
+      </div>
+
+      {/* Amplification Modal */}
+      {showAmplifier && (
+        <ArticleAmplifier
+          article={article}
+          mveData={mveData}
+          onClose={() => setShowAmplifier(false)}
+        />
+      )}
+    </div>
+  );
+};
 
 const MediaValueEstimator = () => {
   const [formData, setFormData] = useState({
@@ -792,6 +844,7 @@ const MediaValueEstimator = () => {
                 )}
 
                 {/* Calculate Button */}
+                
                 <div className="flex space-x-4">
                   <button
                     onClick={handleCalculate}
