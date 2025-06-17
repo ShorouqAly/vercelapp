@@ -1,3 +1,6 @@
+// COMPLETE ENHANCED MEDIA VALUE ESTIMATOR UI WITH UVM INTEGRATION
+// File: src/components/analytics/MediaValueEstimator.jsx
+
 import React, { useState, useEffect } from 'react';
 import { 
   Calculator, DollarSign, TrendingUp, Target, Star, Zap,
@@ -5,7 +8,7 @@ import {
   CheckCircle, AlertCircle, Info, Crown, Lock, Search,
   Globe, Users, Calendar, Briefcase, ThumbsUp, Eye,
   FileText, Video, Headphones, Image, Newspaper, Radio, Tv,
-  RefreshCw, Database, Lightbulb, Settings
+  RefreshCw, Database, Lightbulb, Settings, X
 } from 'lucide-react';
 
 const MediaValueEstimator = () => {
@@ -64,12 +67,11 @@ const MediaValueEstimator = () => {
   const [savedCalculations, setSavedCalculations] = useState([]);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
-  // NEW: UVM integration state
+  // UVM integration state
   const [publicationData, setPublicationData] = useState(null);
   const [uvmStatus, setUvmStatus] = useState(null);
   const [loadingPublication, setLoadingPublication] = useState(false);
   const [reachEstimates, setReachEstimates] = useState(null);
-  const [showUVMInsights, setShowUVMInsights] = useState(true);
 
   // Load benchmarks and user data on mount
   useEffect(() => {
@@ -83,7 +85,7 @@ const MediaValueEstimator = () => {
     if (formData.publicationDomain && formData.publicationDomain.length > 3) {
       const timeoutId = setTimeout(() => {
         loadPublicationData(formData.publicationDomain);
-      }, 1000); // Debounce for 1 second
+      }, 1000);
       
       return () => clearTimeout(timeoutId);
     } else {
@@ -107,6 +109,43 @@ const MediaValueEstimator = () => {
       setBenchmarks(data);
     } catch (error) {
       console.error('Failed to load benchmarks:', error);
+      // Set default benchmarks if API fails
+      setBenchmarks({
+        publicationTiers: [
+          { value: 'tier-1', label: 'Premium (Tier 1)' },
+          { value: 'tier-2', label: 'High-Quality (Tier 2)' },
+          { value: 'tier-3', label: 'Standard (Tier 3)' },
+          { value: 'tier-4', label: 'Emerging (Tier 4)' }
+        ],
+        mediaTypes: [
+          { value: 'digital', label: 'Digital/Online' },
+          { value: 'print', label: 'Print Media' },
+          { value: 'tv', label: 'Television' },
+          { value: 'radio', label: 'Radio' },
+          { value: 'podcast', label: 'Podcast' }
+        ],
+        contentTypes: [
+          { value: 'standard_article', label: 'Standard Article' },
+          { value: 'feature_article', label: 'Feature Article' },
+          { value: 'breaking_news', label: 'Breaking News' },
+          { value: 'product_review', label: 'Product Review' },
+          { value: 'interview', label: 'Interview' }
+        ],
+        placementTypes: [
+          { value: 'homepage_featured', label: 'Homepage Featured', engagementRate: '15%' },
+          { value: 'category_featured', label: 'Category Featured', engagementRate: '8%' },
+          { value: 'standard_article', label: 'Standard Article', engagementRate: '3%' },
+          { value: 'newsletter_feature', label: 'Newsletter Feature', engagementRate: '25%' },
+          { value: 'buried_mention', label: 'Buried Mention', engagementRate: '1%' }
+        ],
+        industries: [
+          { value: 'technology', label: 'Technology' },
+          { value: 'finance', label: 'Finance & Banking' },
+          { value: 'healthcare', label: 'Healthcare' },
+          { value: 'retail', label: 'Retail & E-commerce' },
+          { value: 'default', label: 'General/Other' }
+        ]
+      });
     }
   };
 
@@ -117,17 +156,27 @@ const MediaValueEstimator = () => {
       setUserUsage(data.user);
     } catch (error) {
       console.error('Failed to load usage:', error);
+      // Set default usage for demo
+      setUserUsage({
+        plan: 'free',
+        calculationsToday: 2,
+        dailyLimit: 10,
+        calculationsRemaining: 8
+      });
     }
   };
 
   const loadSavedCalculations = () => {
-    const saved = localStorage.getItem('mve_calculations');
-    if (saved) {
-      setSavedCalculations(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem('mve_calculations');
+      if (saved) {
+        setSavedCalculations(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Failed to load saved calculations:', error);
     }
   };
 
-  // NEW: Load publication data from UVM
   const loadPublicationData = async (domain) => {
     if (!domain || domain.length < 4) return;
     
@@ -139,18 +188,15 @@ const MediaValueEstimator = () => {
       setPublicationData(data);
       
       if (data.found && data.data) {
-        // Auto-populate form with UVM data
         setFormData(prev => ({
           ...prev,
           publicationTier: data.data.publicationTier || prev.publicationTier,
           domainAuthority: data.data.domainAuthority || prev.domainAuthority
         }));
         
-        // Set reach estimates
         setReachEstimates(data.data.reachEstimates);
       }
       
-      // Get UVM status
       const statusResponse = await fetch(`/api/mve/uvm-status/${domain}`);
       const statusData = await statusResponse.json();
       setUvmStatus(statusData);
@@ -163,7 +209,6 @@ const MediaValueEstimator = () => {
     }
   };
 
-  // NEW: Update reach estimates based on current selection
   const updateReachEstimates = async () => {
     if (!formData.publicationDomain) return;
     
@@ -194,7 +239,6 @@ const MediaValueEstimator = () => {
   };
 
   const handleCalculate = async () => {
-    // Check if user has reached limits
     if (userUsage && userUsage.plan === 'free' && userUsage.calculationsRemaining <= 0) {
       setShowUpgradeModal(true);
       return;
@@ -226,7 +270,6 @@ const MediaValueEstimator = () => {
       const result = await response.json();
       setCalculation(result);
       
-      // Save calculation
       const savedCalc = {
         id: Date.now(),
         formData: { ...formData },
@@ -238,10 +281,9 @@ const MediaValueEstimator = () => {
       setSavedCalculations(newSaved);
       localStorage.setItem('mve_calculations', JSON.stringify(newSaved));
       
-      // Update usage
       setUserUsage(prev => ({
         ...prev,
-        calculationsRemaining: result.usage.calculationsRemaining
+        calculationsRemaining: result.usage?.calculationsRemaining || prev.calculationsRemaining - 1
       }));
 
     } catch (error) {
@@ -266,6 +308,17 @@ const MediaValueEstimator = () => {
     }
     return reachEstimates[formData.placement].primaryImpressions;
   };
+
+  if (!benchmarks) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading Media Value Estimator...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -298,7 +351,6 @@ const MediaValueEstimator = () => {
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-gray-900">Coverage Details</h2>
                   
-                  {/* Usage Indicator */}
                   {userUsage && userUsage.plan === 'free' && (
                     <div className="text-sm text-gray-600">
                       {userUsage.calculationsRemaining} calculations remaining today
@@ -331,7 +383,7 @@ const MediaValueEstimator = () => {
                           value={formData.publicationDomain}
                           onChange={(e) => handleInputChange('publicationDomain', e.target.value)}
                           placeholder="techcrunch.com"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         />
                         {loadingPublication && (
                           <div className="px-4 py-2 flex items-center">
@@ -370,7 +422,6 @@ const MediaValueEstimator = () => {
                                 {publicationData.message}
                               </div>
                               
-                              {/* Show UVM data summary */}
                               {publicationData.found && publicationData.data && (
                                 <div className="mt-2 text-sm text-green-700">
                                   <div>Monthly Visitors: {publicationData.data.monthlyVisitors?.toLocaleString() || 'Unknown'}</div>
@@ -394,7 +445,7 @@ const MediaValueEstimator = () => {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                         disabled={publicationData?.found && formData.useUVMData}
                       >
-                        {benchmarks?.publicationTiers.map(tier => (
+                        {benchmarks.publicationTiers.map(tier => (
                           <option key={tier.value} value={tier.value}>
                             {tier.label}
                           </option>
@@ -414,7 +465,7 @@ const MediaValueEstimator = () => {
                         onChange={(e) => handleInputChange('mediaType', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                       >
-                        {benchmarks?.mediaTypes.map(type => (
+                        {benchmarks.mediaTypes.map(type => (
                           <option key={type.value} value={type.value}>
                             {type.label}
                           </option>
@@ -441,7 +492,7 @@ const MediaValueEstimator = () => {
                         onChange={(e) => handleInputChange('contentType', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                       >
-                        {benchmarks?.contentTypes.map(type => (
+                        {benchmarks.contentTypes.map(type => (
                           <option key={type.value} value={type.value}>
                             {type.label}
                           </option>
@@ -458,15 +509,12 @@ const MediaValueEstimator = () => {
                         onChange={(e) => handleInputChange('placement', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                       >
-                        {benchmarks?.placementTypes.map(placement => (
+                        {benchmarks.placementTypes.map(placement => (
                           <option key={placement.value} value={placement.value}>
                             {placement.label} ({placement.engagementRate} engagement)
                           </option>
                         ))}
                       </select>
-                      <p className="text-xs text-gray-500 mt-1">{
-                        benchmarks?.placementTypes.find(p => p.value === formData.placement)?.description
-                      }</p>
                     </div>
 
                     {/* Estimated Reach Display */}
@@ -481,7 +529,7 @@ const MediaValueEstimator = () => {
                               </div>
                               <div className="text-sm text-blue-700">
                                 Calculated from {publicationData?.data?.monthlyVisitors?.toLocaleString()} monthly visitors 
-                                × {benchmarks?.placementTypes.find(p => p.value === formData.placement)?.engagementRate} engagement rate
+                                × {benchmarks.placementTypes.find(p => p.value === formData.placement)?.engagementRate} engagement rate
                               </div>
                             </div>
                           </div>
@@ -489,7 +537,7 @@ const MediaValueEstimator = () => {
                       </div>
                     )}
 
-                    {/* Manual Reach Input (only shown when UVM not available) */}
+                    {/* Manual Reach Input */}
                     {(!formData.useUVMData || !publicationData?.found) && (
                       <>
                         <div>
@@ -545,7 +593,7 @@ const MediaValueEstimator = () => {
                         onChange={(e) => handleInputChange('industry', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                       >
-                        {benchmarks?.industries.map(industry => (
+                        {benchmarks.industries.map(industry => (
                           <option key={industry.value} value={industry.value}>
                             {industry.label}
                           </option>
@@ -577,7 +625,9 @@ const MediaValueEstimator = () => {
                             key={sentiment.value}
                             className={`flex-1 flex items-center justify-center p-2 border rounded-lg cursor-pointer hover:bg-gray-50 ${
                               formData.sentiment === sentiment.value 
-                                ? `border-${sentiment.color}-500 bg-${sentiment.color}-50` 
+                                ? sentiment.color === 'green' ? 'border-green-500 bg-green-50' :
+                                  sentiment.color === 'red' ? 'border-red-500 bg-red-50' :
+                                  'border-gray-500 bg-gray-50'
                                 : 'border-gray-200'
                             }`}
                           >
@@ -685,7 +735,6 @@ const MediaValueEstimator = () => {
                   {showAdvanced && (
                     <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* UVM Integration Toggle */}
                         <div className="md:col-span-2">
                           <label className="flex items-center">
                             <input
@@ -783,6 +832,7 @@ const MediaValueEstimator = () => {
                 calculation={calculation} 
                 formData={formData}
                 userPlan={userUsage?.plan}
+                formatCurrency={formatCurrency}
               />
             )}
           </div>
@@ -820,6 +870,7 @@ const MediaValueEstimator = () => {
                   <a
                     href={`/analytics/uvm?domain=${formData.publicationDomain}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center text-sm font-medium text-yellow-700 hover:text-yellow-800"
                   >
                     Run UVM Analysis
@@ -910,17 +961,8 @@ const MediaValueEstimator = () => {
 };
 
 // Enhanced Results Component
-const EnhancedMediaValueResults = ({ calculation, formData, userPlan }) => {
+const EnhancedMediaValueResults = ({ calculation, formData, userPlan, formatCurrency }) => {
   const { breakdown, insights, uvmInsights, benchmarkComparison, actionableRecommendations, dataEnhancement } = calculation;
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   return (
     <div className="mt-8 bg-white rounded-lg border border-gray-200">
@@ -1000,6 +1042,63 @@ const EnhancedMediaValueResults = ({ calculation, formData, userPlan }) => {
           </div>
         </div>
 
+        {/* Insights */}
+        {insights && insights.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Key Insights</h3>
+            <div className="space-y-3">
+              {insights.map((insight, index) => (
+                <div key={index} className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="font-medium text-yellow-900">{insight.title}</div>
+                  <div className="text-yellow-700">{insight.message}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Benchmark Comparison */}
+        {benchmarkComparison && (
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Benchmark Comparison</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-gray-600">Industry Average</span>
+                <span className="font-medium">{formatCurrency(benchmarkComparison.industryAverage)}</span>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-gray-600">Your Value</span>
+                <span className="font-bold text-green-600">{formatCurrency(benchmarkComparison.yourValue)}</span>
+              </div>
+              <div className="text-sm text-gray-500 mt-3">
+                {benchmarkComparison.message}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recommendations */}
+        {actionableRecommendations && actionableRecommendations.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Recommendations</h3>
+            <div className="space-y-4">
+              {actionableRecommendations.map((rec, index) => (
+                <div key={index} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="font-medium text-green-900 mb-2">{rec.title}</div>
+                  <ul className="space-y-1">
+                    {rec.suggestions.map((suggestion, suggestionIndex) => (
+                      <li key={suggestionIndex} className="text-green-700 text-sm flex items-start">
+                        <CheckCircle className="w-3 h-3 mr-2 mt-0.5 flex-shrink-0" />
+                        {suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Data Enhancement Info */}
         {dataEnhancement && (
           <div className="mb-8">
@@ -1028,24 +1127,30 @@ const EnhancedMediaValueResults = ({ calculation, formData, userPlan }) => {
             </div>
           </div>
         )}
-
-        {/* Rest of existing results components... */}
-        {/* (Keep all existing insights, benchmark comparison, recommendations) */}
       </div>
     </div>
   );
 };
 
-// Upgrade Modal (same as before)
+// Upgrade Modal Component
 const UpgradeModal = ({ onClose, currentPlan }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-md w-full p-6">
-        <div className="text-center">
-          <Crown className="w-12 h-12 text-green-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-gray-900">
             Upgrade to MVE Pro
           </h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="text-center">
+          <Crown className="w-12 h-12 text-green-600 mx-auto mb-4" />
           <p className="text-gray-600 mb-6">
             Get unlimited calculations with UVM enhancement
           </p>
