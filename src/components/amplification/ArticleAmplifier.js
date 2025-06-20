@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, DollarSign, Target, Users, AlertCircle, CheckCircle } from 'lucide-react';
+import axios from 'axios';
+
 
 const ArticleAmplifier = ({ article, mveData, onClose }) => {
   const [activeTab, setActiveTab] = useState('setup');
@@ -38,7 +40,7 @@ const ArticleAmplifier = ({ article, mveData, onClose }) => {
     if (!query || query.length < 2) return;
     
     try {
-      const response = await fetch(`/api/amplification/targeting/interests/search?q=${query}`, {
+      const response = await axios.post(`/api/amplification/targeting/interests/search?q=${query}`, {
         headers: {
           'user-id': window.currentUser?.id || 'demo-user' // Replace with your auth
         }
@@ -114,7 +116,7 @@ const ArticleAmplifier = ({ article, mveData, onClose }) => {
     setError(null);
     
     try {
-      const response = await fetch('/api/amplification/campaigns/create', {
+      const response = await axios.post('/api/amplification/campaigns/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

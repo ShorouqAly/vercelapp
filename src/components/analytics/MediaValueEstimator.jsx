@@ -10,6 +10,7 @@ import {
   FileText, Video, Headphones, Image, Newspaper, Radio, Tv,
   RefreshCw, Database, Lightbulb, Settings, X
 } from 'lucide-react';
+import axios from 'axios';
 
 const MediaValueEstimator = () => {
   const [formData, setFormData] = useState({
@@ -104,7 +105,7 @@ const MediaValueEstimator = () => {
 
   const loadBenchmarks = async () => {
     try {
-      const response = await fetch('/api/mve/benchmarks');
+      const response = await axios.post('/api/mve/benchmarks');
       const data = await response.json();
       setBenchmarks(data);
     } catch (error) {
@@ -151,7 +152,7 @@ const MediaValueEstimator = () => {
 
   const loadUserUsage = async () => {
     try {
-      const response = await fetch('/api/mve/usage');
+      const response = await axios.post('/api/mve/usage');
       const data = await response.json();
       setUserUsage(data.user);
     } catch (error) {
@@ -182,7 +183,7 @@ const MediaValueEstimator = () => {
     
     setLoadingPublication(true);
     try {
-      const response = await fetch(`/api/mve/publication-data/${domain}`);
+      const response = await axios.post(`/api/mve/publication-data/${domain}`);
       const data = await response.json();
       
       setPublicationData(data);
@@ -197,7 +198,7 @@ const MediaValueEstimator = () => {
         setReachEstimates(data.data.reachEstimates);
       }
       
-      const statusResponse = await fetch(`/api/mve/uvm-status/${domain}`);
+      const statusResponse = await axios.post(`/api/mve/uvm-status/${domain}`);
       const statusData = await statusResponse.json();
       setUvmStatus(statusData);
       
@@ -213,7 +214,7 @@ const MediaValueEstimator = () => {
     if (!formData.publicationDomain) return;
     
     try {
-      const response = await fetch('/api/mve/reach-estimates', {
+      const response = await axios.post('/api/mve/reach-estimates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -248,7 +249,7 @@ const MediaValueEstimator = () => {
     setError(null);
 
     try {
-      const response = await fetch('/api/mve/calculate', {
+      const response = await axios.post('/api/mve/calculate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -18,25 +18,33 @@ const AnnouncementDetails = () => {
   const [showAmplifier, setShowAmplifier] = useState(false);
   const [mveData, setMveData] = useState(null);
 
-  const handleAmplify = async () => {
-    // Get MVE data first (if you have the MVE system)
+  const handleAmplify = async (announcement) => {
     try {
-      const response = await fetch(`/api/mve/calculate`, {
+      const response = await axios.post('/api/mve/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           publicationDomain: announcement.publicationDomain,
           contentType: 'standard_article',
-          // ... other MVE parameters
-        })
+          // other fields as needed
+        }),
       });
-      const mveResult = await response.json();
-      setMveData(mveResult);
+
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('MVE response not JSON:', text);
+        throw new Error('Invalid response from MVE API');
+      }
+
+      setMveData(data);
+      setShowAmplifier(true);
     } catch (error) {
       console.error('MVE calculation failed:', error);
     }
-    
-    setShowAmplifier(true);
   };
   
   useEffect(() => {
