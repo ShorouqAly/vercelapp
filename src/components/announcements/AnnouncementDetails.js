@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import './Announcements.css';
+import ArticleAmplifier from '../amplification/ArticleAmplifier';
+
 
 const AnnouncementDetails = () => {
   const { id } = useParams();
@@ -12,6 +14,30 @@ const AnnouncementDetails = () => {
   const [error, setError] = useState('');
   const [publishUrl, setPublishUrl] = useState('');
   const [publishing, setPublishing] = useState(false);
+
+  const [showAmplifier, setShowAmplifier] = useState(false);
+  const [mveData, setMveData] = useState(null);
+
+  const handleAmplify = async () => {
+    // Get MVE data first (if you have the MVE system)
+    try {
+      const response = await fetch(`/api/mve/calculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          publicationDomain: announcement.publicationDomain,
+          contentType: 'standard_article',
+          // ... other MVE parameters
+        })
+      });
+      const mveResult = await response.json();
+      setMveData(mveResult);
+    } catch (error) {
+      console.error('MVE calculation failed:', error);
+    }
+    
+    setShowAmplifier(true);
+  };
   
   useEffect(() => {
     const fetchAnnouncement = async () => {
@@ -161,7 +187,21 @@ const AnnouncementDetails = () => {
             Open Chat Thread
           </Link>
         )}
-        
+        <button
+          onClick={handleAmplify}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+        >
+            Amplify Article
+        </button>
+
+        {/* Amplification Modal */}
+        {showAmplifier && (
+          <ArticleAmplifier
+            article={announcement}
+            mveData={mveData}
+            onClose={() => setShowAmplifier(false)}
+          />
+        )}
         {announcement.status === 'claimed' && isClaimer && user.role === 'journalist' && (
           <div className="publish-section">
             <h3>Mark as Published</h3>

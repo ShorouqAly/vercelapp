@@ -18,7 +18,6 @@ import { ReviewMatchProvider } from './contexts/ReviewMatchContext';
 import './App.css';
 import MediaValueEstimator from './components/analytics/MediaValueEstimator';
 import SubscriptionPlans from './components/pricing/SubscriptionPlans';
-import ArticleAmplifier from './components/amplification/ArticleAmplifier';
 
 
 // API configuration

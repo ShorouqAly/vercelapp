@@ -5,9 +5,9 @@ const ArticleAmplifier = ({ article, mveData, onClose }) => {
   const [activeTab, setActiveTab] = useState('setup');
   const [loading, setLoading] = useState(false);
   const [campaignData, setCampaignData] = useState({
-    name: `Amplify: ${article.headline}`,
+    name: `Amplify: ${article.title}`,
     articleData: {
-      headline: article.headline,
+      headline: article.title,
       url: article.url,
       summary: article.summary || article.description,
       featuredImage: article.featuredImage || article.image
@@ -144,7 +144,7 @@ const ArticleAmplifier = ({ article, mveData, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 w-full">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
@@ -193,7 +193,7 @@ const ArticleAmplifier = ({ article, mveData, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 250px)' }}>
+        <div className="p-6 overflow-y-auto">
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
