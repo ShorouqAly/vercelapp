@@ -105,7 +105,7 @@ const MediaValueEstimator = () => {
 
 const loadBenchmarks = async () => {
   try {
-    const response = await axios.post('/api/mve/benchmarks');
+    const response = await axios.get('/api/mve/benchmarks');
     const data = response.data;
     setBenchmarks(data);
   } catch (error) {
@@ -153,7 +153,7 @@ const loadBenchmarks = async () => {
 
 const loadUserUsage = async () => {
   try {
-    const response = await axios.post('/api/mve/usage');
+    const response = await axios.get('/api/mve/usage');
     const data = response.data;
     setUserUsage(data.user);
   } catch (error) {

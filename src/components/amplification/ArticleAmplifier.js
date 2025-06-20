@@ -115,33 +115,33 @@ const ArticleAmplifier = ({ article, mveData, onClose }) => {
     setLoading(true);
     setError(null);
     
-try {
-  const response = await axios.post('/api/amplification/campaigns/create', {
-    ...campaignData,
-    articleId: article.id,
-    mveData: mveData // Include MVE data if available
-  }, {
-    headers: {
-      'Content-Type': 'application/json',
-      'user-id': window.currentUser?.id || 'demo-user' // Replace with your auth
+    try {
+      const response = await axios.post('/api/amplification/campaigns/create', {
+        ...campaignData,
+        articleId: article.id,
+        mveData: mveData // Include MVE data if available
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'user-id': window.currentUser?.id || 'demo-user' // Replace with your auth
+        }
+      });
+
+      const result = response.data;
+
+      if (result.success) {
+        setCampaignResult(result);
+        setActiveTab('success');
+      } else {
+        setError(result.error || 'Campaign creation failed');
+      }
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || 'Network error';
+      setError(message);
+      console.error('Campaign launch failed:', err);
+    } finally {
+      setLoading(false);
     }
-  });
-
-  const result = response.data;
-
-  if (result.success) {
-    setCampaignResult(result);
-    setActiveTab('success');
-  } else {
-    setError(result.error || 'Campaign creation failed');
-  }
-} catch (err) {
-  const message = err.response?.data?.error || err.message || 'Network error';
-  setError(message);
-  console.error('Campaign launch failed:', err);
-} finally {
-  setLoading(false);
-}
 
   };
 
