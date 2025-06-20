@@ -103,69 +103,72 @@ const MediaValueEstimator = () => {
     }
   }, [formData.placement, formData.contentType, publicationData]);
 
-  const loadBenchmarks = async () => {
-    try {
-      const response = await axios.post('/api/mve/benchmarks');
-      const data = await response.json();
-      setBenchmarks(data);
-    } catch (error) {
-      console.error('Failed to load benchmarks:', error);
-      // Set default benchmarks if API fails
-      setBenchmarks({
-        publicationTiers: [
-          { value: 'tier-1', label: 'Premium (Tier 1)' },
-          { value: 'tier-2', label: 'High-Quality (Tier 2)' },
-          { value: 'tier-3', label: 'Standard (Tier 3)' },
-          { value: 'tier-4', label: 'Emerging (Tier 4)' }
-        ],
-        mediaTypes: [
-          { value: 'digital', label: 'Digital/Online' },
-          { value: 'print', label: 'Print Media' },
-          { value: 'tv', label: 'Television' },
-          { value: 'radio', label: 'Radio' },
-          { value: 'podcast', label: 'Podcast' }
-        ],
-        contentTypes: [
-          { value: 'standard_article', label: 'Standard Article' },
-          { value: 'feature_article', label: 'Feature Article' },
-          { value: 'breaking_news', label: 'Breaking News' },
-          { value: 'product_review', label: 'Product Review' },
-          { value: 'interview', label: 'Interview' }
-        ],
-        placementTypes: [
-          { value: 'homepage_featured', label: 'Homepage Featured', engagementRate: '15%' },
-          { value: 'category_featured', label: 'Category Featured', engagementRate: '8%' },
-          { value: 'standard_article', label: 'Standard Article', engagementRate: '3%' },
-          { value: 'newsletter_feature', label: 'Newsletter Feature', engagementRate: '25%' },
-          { value: 'buried_mention', label: 'Buried Mention', engagementRate: '1%' }
-        ],
-        industries: [
-          { value: 'technology', label: 'Technology' },
-          { value: 'finance', label: 'Finance & Banking' },
-          { value: 'healthcare', label: 'Healthcare' },
-          { value: 'retail', label: 'Retail & E-commerce' },
-          { value: 'default', label: 'General/Other' }
-        ]
-      });
-    }
-  };
+const loadBenchmarks = async () => {
+  try {
+    const response = await axios.post('/api/mve/benchmarks');
+    const data = response.data;
+    setBenchmarks(data);
+  } catch (error) {
+    console.error('Failed to load benchmarks:', error);
 
-  const loadUserUsage = async () => {
-    try {
-      const response = await axios.post('/api/mve/usage');
-      const data = await response.json();
-      setUserUsage(data.user);
-    } catch (error) {
-      console.error('Failed to load usage:', error);
-      // Set default usage for demo
-      setUserUsage({
-        plan: 'free',
-        calculationsToday: 2,
-        dailyLimit: 10,
-        calculationsRemaining: 8
-      });
-    }
-  };
+    // Set default benchmarks if API fails
+    setBenchmarks({
+      publicationTiers: [
+        { value: 'tier-1', label: 'Premium (Tier 1)' },
+        { value: 'tier-2', label: 'High-Quality (Tier 2)' },
+        { value: 'tier-3', label: 'Standard (Tier 3)' },
+        { value: 'tier-4', label: 'Emerging (Tier 4)' }
+      ],
+      mediaTypes: [
+        { value: 'digital', label: 'Digital/Online' },
+        { value: 'print', label: 'Print Media' },
+        { value: 'tv', label: 'Television' },
+        { value: 'radio', label: 'Radio' },
+        { value: 'podcast', label: 'Podcast' }
+      ],
+      contentTypes: [
+        { value: 'standard_article', label: 'Standard Article' },
+        { value: 'feature_article', label: 'Feature Article' },
+        { value: 'breaking_news', label: 'Breaking News' },
+        { value: 'product_review', label: 'Product Review' },
+        { value: 'interview', label: 'Interview' }
+      ],
+      placementTypes: [
+        { value: 'homepage_featured', label: 'Homepage Featured', engagementRate: '15%' },
+        { value: 'category_featured', label: 'Category Featured', engagementRate: '8%' },
+        { value: 'standard_article', label: 'Standard Article', engagementRate: '3%' },
+        { value: 'newsletter_feature', label: 'Newsletter Feature', engagementRate: '25%' },
+        { value: 'buried_mention', label: 'Buried Mention', engagementRate: '1%' }
+      ],
+      industries: [
+        { value: 'technology', label: 'Technology' },
+        { value: 'finance', label: 'Finance & Banking' },
+        { value: 'healthcare', label: 'Healthcare' },
+        { value: 'retail', label: 'Retail & E-commerce' },
+        { value: 'default', label: 'General/Other' }
+      ]
+    });
+  }
+};
+
+const loadUserUsage = async () => {
+  try {
+    const response = await axios.post('/api/mve/usage');
+    const data = response.data;
+    setUserUsage(data.user);
+  } catch (error) {
+    console.error('Failed to load usage:', error);
+
+    // Set default usage for demo
+    setUserUsage({
+      plan: 'free',
+      calculationsToday: 2,
+      dailyLimit: 10,
+      calculationsRemaining: 8
+    });
+  }
+};
+
 
   const loadSavedCalculations = () => {
     try {
@@ -178,59 +181,59 @@ const MediaValueEstimator = () => {
     }
   };
 
-  const loadPublicationData = async (domain) => {
-    if (!domain || domain.length < 4) return;
-    
-    setLoadingPublication(true);
-    try {
-      const response = await axios.post(`/api/mve/publication-data/${domain}`);
-      const data = await response.json();
-      
-      setPublicationData(data);
-      
-      if (data.found && data.data) {
-        setFormData(prev => ({
-          ...prev,
-          publicationTier: data.data.publicationTier || prev.publicationTier,
-          domainAuthority: data.data.domainAuthority || prev.domainAuthority
-        }));
-        
-        setReachEstimates(data.data.reachEstimates);
-      }
-      
-      const statusResponse = await axios.post(`/api/mve/uvm-status/${domain}`);
-      const statusData = await statusResponse.json();
-      setUvmStatus(statusData);
-      
-    } catch (error) {
-      console.error('Failed to load publication data:', error);
-      setPublicationData({ found: false, message: 'Failed to load publication data' });
-    } finally {
-      setLoadingPublication(false);
-    }
-  };
+const loadPublicationData = async (domain) => {
+  if (!domain || domain.length < 4) return;
 
-  const updateReachEstimates = async () => {
-    if (!formData.publicationDomain) return;
-    
-    try {
-      const response = await axios.post('/api/mve/reach-estimates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          publicationDomain: formData.publicationDomain,
-          contentType: formData.contentType
-        })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setReachEstimates(data.estimates);
-      }
-    } catch (error) {
-      console.error('Failed to update reach estimates:', error);
+  setLoadingPublication(true);
+  try {
+    // Get publication data
+    const response = await axios.post(`/api/mve/publication-data/${domain}`);
+    const data = response.data;
+
+    setPublicationData(data);
+
+    if (data.found && data.data) {
+      setFormData(prev => ({
+        ...prev,
+        publicationTier: data.data.publicationTier || prev.publicationTier,
+        domainAuthority: data.data.domainAuthority || prev.domainAuthority
+      }));
+
+      setReachEstimates(data.data.reachEstimates);
     }
-  };
+
+    // Get UVM status
+    const statusResponse = await axios.post(`/api/mve/uvm-status/${domain}`);
+    const statusData = statusResponse.data;
+    setUvmStatus(statusData);
+  } catch (error) {
+    console.error('Failed to load publication data:', error);
+    setPublicationData({ found: false, message: 'Failed to load publication data' });
+  } finally {
+    setLoadingPublication(false);
+  }
+};
+
+
+const updateReachEstimates = async () => {
+  if (!formData.publicationDomain) return;
+
+  try {
+    const response = await axios.post('/api/mve/reach-estimates', {
+      publicationDomain: formData.publicationDomain,
+      contentType: formData.contentType
+    });
+
+    const data = response.data;
+
+    if (data.success) {
+      setReachEstimates(data.estimates);
+    }
+  } catch (error) {
+    console.error('Failed to update reach estimates:', error);
+  }
+};
+
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -239,60 +242,54 @@ const MediaValueEstimator = () => {
     }));
   };
 
-  const handleCalculate = async () => {
-    if (userUsage && userUsage.plan === 'free' && userUsage.calculationsRemaining <= 0) {
+const handleCalculate = async () => {
+  if (userUsage && userUsage.plan === 'free' && userUsage.calculationsRemaining <= 0) {
+    setShowUpgradeModal(true);
+    return;
+  }
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const response = await axios.post('/api/mve/calculate', formData);
+
+    const result = response.data;
+
+    // Handle 429 upgradeRequired inside the data if applicable
+    if (response.status === 429 && result.upgradeRequired) {
       setShowUpgradeModal(true);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    setCalculation(result);
 
-    try {
-      const response = await axios.post('/api/mve/calculate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+    const savedCalc = {
+      id: Date.now(),
+      formData: { ...formData },
+      result,
+      timestamp: new Date()
+    };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        
-        if (response.status === 429 && errorData.upgradeRequired) {
-          setShowUpgradeModal(true);
-          return;
-        }
-        
-        throw new Error(errorData.error || 'Calculation failed');
-      }
+    const newSaved = [savedCalc, ...savedCalculations.slice(0, 9)];
+    setSavedCalculations(newSaved);
+    localStorage.setItem('mve_calculations', JSON.stringify(newSaved));
 
-      const result = await response.json();
-      setCalculation(result);
-      
-      const savedCalc = {
-        id: Date.now(),
-        formData: { ...formData },
-        result: result,
-        timestamp: new Date()
-      };
-      
-      const newSaved = [savedCalc, ...savedCalculations.slice(0, 9)];
-      setSavedCalculations(newSaved);
-      localStorage.setItem('mve_calculations', JSON.stringify(newSaved));
-      
-      setUserUsage(prev => ({
-        ...prev,
-        calculationsRemaining: result.usage?.calculationsRemaining || prev.calculationsRemaining - 1
-      }));
+    setUserUsage(prev => ({
+      ...prev,
+      calculationsRemaining: result.usage?.calculationsRemaining ?? (prev.calculationsRemaining - 1)
+    }));
+  } catch (error) {
+    const errMsg =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
+    setError(errMsg);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
