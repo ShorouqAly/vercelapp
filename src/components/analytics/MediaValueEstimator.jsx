@@ -10,7 +10,7 @@ import {
   FileText, Video, Headphones, Image, Newspaper, Radio, Tv,
   RefreshCw, Database, Lightbulb, Settings, X
 } from 'lucide-react';
-import ArticleAmplifier from './amplification/ArticleAmplifier';
+import ArticleAmplifier from '../amplification/ArticleAmplifier';
 
 
 const ArticleCard = ({ article }) => {
